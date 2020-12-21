@@ -74,11 +74,11 @@ drop if eduyrs > 23 | eduyrs < 3
 tabstat netustm, stats(q)
 	//To identify quartiles
 //Therefore the variable was divided in five categories: 			
-* "Light users" (>=0 and <=65)
+* "Light users" (>=0 and <=60)
 replace netustm = 2 if netustm>=0 & netustm<=60 & netustm!=.a
-* "Medium-light users" (>65 and <=150) 
+* "Medium-light users" (>60 and <=120) 
 replace netustm = 3 if netustm>60 & netustm<=120 
-* "Moderate use of Internet" (>150 and <=240)
+* "Moderate use of Internet" (>120 and <=240)
 replace netustm = 4 if netustm>120 & netustm<=240 
 * "Heavy users" (>240)
 replace netustm = 5 if netustm>240 & netustm <=619 
@@ -225,7 +225,7 @@ pwcorr polintr_ordered internet_use
 		
 
 //Model with all the controls and regressors
-reg political_trust i.internet_use i.gndr i.age_categories eduyrs social_trust log_nwspol polintr [w=overallwght], beta 
+reg political_trust i.internet_use i.gndr i.age_categories eduyrs social_trust nwspol polintr_ordered [w=overallwght], beta 
 //Check on heteroskedasticity
 estat hettest
 	//homoskedastik
@@ -236,21 +236,15 @@ vif
 	Adj R-squared   =    0.1929
 */
 
-//Model with all the controls and regressors, excluding polintr
-reg political_trust i.internet_use i.gndr i.age_categories eduyrs social_trust nwspol [w=overallwght], beta 
-//Check on heteroskedasticity
-estat hettest
-	//homoskedastik
-vif
-	//Some variables are slighly off 2.0, overall ok
 
-/*	R-squared       =    0.1679
-	Adj R-squared   =    0.1676
-*/
+//Remove age from the analysis, highly correlaed with internet use and not so much influence on political trust
+pwcorr age_categories internet_use 
+//strong correlation
+pwcorr age_categories political_trust
 
 
-//Model with all the controls and regressors, excluding polintr and using log of nwspol
-reg political_trust i.internet_use i.gndr i.age_categories eduyrs social_trust log_nwspol  [w=overallwght], beta 
+//Model with all the controls and regressors, excluding age_categories and using log of nwspol
+reg political_trust i.internet_use i.gndr eduyrs social_trust polintr_ordered log_nwspol [w=overallwght] , beta
 //Check for residuals
 predict y_hat
 predict residuals, r
@@ -263,29 +257,15 @@ pnorm residuals
 estat hettest
 	//homoskedastik
 vif
-	//Some variables are slighly off 2.0, overall ok
+	//No multicollinearity
 
-/*	R-squared       =    0.1715
-	Adj R-squared   =    0.1713
+/*	R-squared       =    0.1854
+	Adj R-squared   =    0.1852
 */
 
-
-
-	
-	
-	
-
-
-
-Even extreme multicollinearity (so long as it is not perfect) does not violate OLS assumptions. OLS estimates are still unbiased and BLUE (Best Linear Unbiased Estimators)
- the law of large numbers will kick in and assure that the distributions of the t-statistics you rely on for inference are well approximated by the standard normal distribution, so all of your tests and p-values will be correct
-Normality of residuals is only needed in small samples.
-
-Con una ols l'utilizzo di variabili categoriche porta alla violazione di alcune assumption nel dettagli abbiamo porblemi di heteroskedasticity perchè l'errore non segue più un andamento lineare e qunidi non è più "approssimabile/accettabile".
-
-
-
-
+pwcorr age_categories internet_use 
+//strong correlation
+pwcorr age_categories political_trust
 
 
 //IMPORTANT GRAPH
